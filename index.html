@@ -1,34 +1,36 @@
-<!-- UPDATED CODE WITH BACKUP & DASHBOARD -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BP Tracker Pro</title>
+    <title>WHO BP Tracker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .view-section { display: none; }
         .view-section.active { display: block; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900">
 
     <div class="max-w-2xl mx-auto p-4 md:p-8">
-        <!-- Navigation -->
+        <!-- Persistent Navigation -->
         <nav class="flex justify-between items-center mb-8 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <h1 class="text-xl font-black text-blue-600 tracking-tight" onclick="resetApp()" style="cursor:pointer">BP<span class="text-slate-400">TRACK</span></h1>
+            <h1 class="text-xl font-black text-blue-600 tracking-tight cursor-pointer" onclick="resetApp()">BP<span class="text-slate-400">TRACK</span></h1>
             <div class="flex gap-2">
-                <button onclick="exportData()" class="text-[10px] font-bold bg-green-50 text-green-700 px-3 py-1 rounded-lg hover:bg-green-100 transition">💾 Export Backup</button>
+                <button onclick="exportData()" class="text-[10px] font-bold bg-green-50 text-green-700 px-3 py-1 rounded-lg hover:bg-green-100 transition">💾 Backup</button>
                 <button onclick="showDashboard()" class="text-sm font-bold bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition">📊 History</button>
             </div>
         </nav>
 
-        <!-- VIEW: Setup/Home -->
+        <!-- VIEW: Home -->
         <div id="setup-view" class="view-section active text-center py-12">
             <div class="bg-white p-10 rounded-3xl shadow-xl border border-slate-100">
-                <h2 class="text-2xl font-bold mb-8">Ready for a reading?</h2>
-                <button onclick="startNewEntry()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 transition">+ Start New Entry</button>
-                <p class="mt-6 text-xs text-slate-400">Data is saved locally in this browser.</p>
+                <h2 class="text-2xl font-bold mb-8 text-slate-700">Ready for a new entry?</h2>
+                <button onclick="startNewEntry()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 transition">
+                    + Create New Entry
+                </button>
+                <p class="mt-6 text-xs text-slate-400 italic">Data is stored locally on this device.</p>
             </div>
         </div>
 
@@ -37,40 +39,55 @@
             <div class="bg-white p-6 rounded-3xl shadow-lg border border-slate-100">
                 <div class="flex justify-between items-center mb-6">
                     <span id="entry-timestamp" class="text-xs font-bold text-slate-400"></span>
-                    <div id="active-avg-pill" class="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-600">Avg: <span id="active-avg-val">--/--</span></div>
+                    <div class="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-600">
+                        Session Avg: <span id="active-avg-val">--/--</span>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-6">
-                    <input type="number" id="sys-input" placeholder="SYS" class="bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-2xl font-bold focus:border-blue-400 outline-none">
-                    <input type="number" id="dia-input" placeholder="DIA" class="bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-2xl font-bold focus:border-blue-400 outline-none">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Systolic</label>
+                        <input type="number" id="sys-input" placeholder="120" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-2xl font-bold focus:border-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Diastolic</label>
+                        <input type="number" id="dia-input" placeholder="80" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-2xl font-bold focus:border-blue-400 outline-none">
+                    </div>
                 </div>
                 
-                <button onclick="addReading()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold mb-4">Add Reading</button>
+                <button onclick="addReading()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold mb-4 hover:bg-black transition">Add Reading</button>
+                
+                <!-- Active Log -->
                 <div id="readings-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
-                <button onclick="completeEntry()" id="save-btn" class="hidden w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg mt-4">Save Session</button>
+                
+                <button onclick="completeEntry()" id="save-btn" class="hidden w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg mt-6 hover:bg-blue-700 transition">
+                    Complete Entry & View Summary
+                </button>
             </div>
         </div>
 
-        <!-- VIEW: Summary -->
+        <!-- VIEW: Entry Summary -->
         <div id="summary-view" class="view-section space-y-4">
-            <div class="bg-white p-8 rounded-3xl shadow-xl text-center border-t-8" id="summary-card">
+            <div class="bg-white p-8 rounded-3xl shadow-xl text-center border-t-[12px]" id="summary-card">
                 <p id="summary-date" class="text-slate-400 text-xs font-bold uppercase mb-4"></p>
                 <div class="inline-block bg-slate-50 rounded-2xl p-6 mb-6">
                     <div id="summary-avg-val" class="text-5xl font-black tracking-tighter"></div>
-                    <div id="summary-status-tag" class="text-[10px] font-black uppercase tracking-widest mt-2"></div>
+                    <div id="summary-status-tag" class="text-xs font-black uppercase tracking-widest mt-2"></div>
                 </div>
                 
-                <div class="text-left space-y-2" id="summary-log"></div>
+                <div class="text-left space-y-2" id="summary-log">
+                    <!-- Log with labels will be injected here -->
+                </div>
 
-                <button onclick="showDashboard()" class="mt-8 w-full bg-slate-100 text-slate-600 py-3 rounded-xl font-bold">Back to History</button>
+                <button onclick="showDashboard()" class="mt-8 w-full bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition">Go to Dashboard</button>
             </div>
         </div>
 
         <!-- VIEW: Dashboard -->
         <div id="dashboard-view" class="view-section space-y-6">
             <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-black">History</h2>
-                <button onclick="startNewEntry()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">New Entry</button>
+                <h2 class="text-2xl font-black text-slate-800">History</h2>
+                <button onclick="startNewEntry()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md shadow-blue-100">+ New</button>
             </div>
             <div id="dashboard-list" class="space-y-4"></div>
         </div>
@@ -78,31 +95,36 @@
 
     <script>
         let currentEntry = { timestamp: null, readings: [] };
-        let historyData = JSON.parse(localStorage.getItem('bp_history_v2')) || [];
+        let historyData = JSON.parse(localStorage.getItem('bp_history_v3')) || [];
 
-        const WHO = [
-            { name: 'Optimal', s: 120, d: 80, color: '#059669' },
-            { name: 'Normal', s: 130, d: 85, color: '#84cc16' },
-            { name: 'High Normal', s: 140, d: 90, color: '#eab308' },
-            { name: 'Grade 1', s: 160, d: 100, color: '#f97316' },
-            { name: 'Grade 2', s: 180, d: 110, color: '#ef4444' },
-            { name: 'Grade 3', s: 999, d: 999, color: '#7f1d1d' }
+        // WHO Classification Guidelines
+        const WHO_LEVELS = [
+            { name: 'Optimal', s: 120, d: 80, color: '#059669' },     // Green
+            { name: 'Normal', s: 130, d: 85, color: '#84cc16' },      // Lime
+            { name: 'High Normal', s: 140, d: 90, color: '#eab308' }, // Yellow
+            { name: 'Grade 1 Hypertension', s: 160, d: 100, color: '#f97316' }, // Orange
+            { name: 'Grade 2 Hypertension', s: 180, d: 110, color: '#ef4444' }, // Red
+            { name: 'Grade 3 Hypertension', s: 999, d: 999, color: '#7f1d1d' }  // Dark Red
         ];
 
-        function getWHOColor(s, d) {
-            for (let l of WHO) if (s < l.s && d < l.d) return l.color;
-            return WHO[WHO.length-1].color;
+        function getClassification(s, d) {
+            for (let l of WHO_LEVELS) {
+                if (s < l.s && d < l.d) return l;
+            }
+            return WHO_LEVELS[WHO_LEVELS.length - 1];
         }
 
         function navigate(id) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
         }
 
         function startNewEntry() {
             currentEntry = { timestamp: new Date().toLocaleString(), readings: [] };
             document.getElementById('entry-timestamp').innerText = currentEntry.timestamp;
             document.getElementById('readings-list').innerHTML = '';
+            document.getElementById('active-avg-val').innerText = "--/--";
             document.getElementById('save-btn').classList.add('hidden');
             navigate('active-entry-view');
         }
@@ -110,27 +132,42 @@
         function addReading() {
             const s = parseInt(document.getElementById('sys-input').value);
             const d = parseInt(document.getElementById('dia-input').value);
-            if (!s || !d) return;
+            if (!s || !d) { alert("Please enter both values."); return; }
 
-            currentEntry.readings.push({ s, d, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), color: getWHOColor(s, d)});
-            document.getElementById('sys-input').value = ''; document.getElementById('dia-input').value = '';
-            
-            renderActive();
+            const level = getClassification(s, d);
+            currentEntry.readings.push({
+                s, d, 
+                label: level.name,
+                color: level.color,
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+            });
+
+            document.getElementById('sys-input').value = '';
+            document.getElementById('dia-input').value = '';
             document.getElementById('save-btn').classList.remove('hidden');
+            renderActive();
         }
 
         function renderActive() {
             const list = document.getElementById('readings-list');
             list.innerHTML = '';
             let sSum = 0, dSum = 0;
+            
             [...currentEntry.readings].reverse().forEach(r => {
                 sSum += r.s; dSum += r.d;
                 const div = document.createElement('div');
                 div.className = 'bg-white p-3 rounded-xl border-l-4 flex justify-between items-center text-sm shadow-sm';
                 div.style.borderLeftColor = r.color;
-                div.innerHTML = `<b>${r.s}/${r.d}</b><span class="text-slate-400 text-xs">${r.time}</span>`;
+                div.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="font-black text-slate-800">${r.s} / ${r.d}</span>
+                        <span class="text-[9px] font-bold uppercase tracking-tight" style="color: ${r.color}">${r.label}</span>
+                    </div>
+                    <span class="text-slate-400 text-[10px] font-medium">${r.time}</span>
+                `;
                 list.appendChild(div);
             });
+
             const avgS = Math.round(sSum / currentEntry.readings.length);
             const avgD = Math.round(dSum / currentEntry.readings.length);
             document.getElementById('active-avg-val').innerText = `${avgS}/${avgD}`;
@@ -139,9 +176,11 @@
         function completeEntry() {
             const s = Math.round(currentEntry.readings.reduce((a,b)=>a+b.s, 0) / currentEntry.readings.length);
             const d = Math.round(currentEntry.readings.reduce((a,b)=>a+b.d, 0) / currentEntry.readings.length);
-            currentEntry.avg = { s, d, color: getWHOColor(s, d) };
+            const level = getClassification(s, d);
+            
+            currentEntry.avg = { s, d, label: level.name, color: level.color };
             historyData.unshift({...currentEntry});
-            localStorage.setItem('bp_history_v2', JSON.stringify(historyData));
+            localStorage.setItem('bp_history_v3', JSON.stringify(historyData));
             showSummary(currentEntry);
         }
 
@@ -150,16 +189,22 @@
             const card = document.getElementById('summary-card');
             card.style.borderTopColor = entry.avg.color;
             document.getElementById('summary-date').innerText = entry.timestamp;
-            document.getElementById('summary-avg-val').innerText = `${entry.avg.s}/${entry.avg.d}`;
-            document.getElementById('summary-avg-val').style.color = entry.avg.color;
-            document.getElementById('summary-status-tag').innerText = WHO.find(l => l.color === entry.avg.color).name;
-            document.getElementById('summary-status-tag').style.color = entry.avg.color;
+            
+            const avgDisplay = document.getElementById('summary-avg-val');
+            avgDisplay.innerText = `${entry.avg.s} / ${entry.avg.d}`;
+            avgDisplay.style.color = entry.avg.color;
 
+            const statusTag = document.getElementById('summary-status-tag');
+            statusTag.innerText = entry.avg.label;
+            statusTag.style.color = entry.avg.color;
+
+            // Find lowest reading logic
             let lowestVal = 999;
             entry.readings.forEach(r => { if(r.s + r.d < lowestVal) lowestVal = r.s + r.d; });
 
             const log = document.getElementById('summary-log');
-            log.innerHTML = '<p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Detailed Log</p>';
+            log.innerHTML = '<p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2 mt-4">Detailed Session Log</p>';
+            
             entry.readings.forEach(r => {
                 const isLowest = (r.s + r.d) === lowestVal;
                 const div = document.createElement('div');
@@ -167,10 +212,13 @@
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <div class="w-2 h-2 rounded-full" style="background:${r.color}"></div>
-                        <span class="font-bold text-sm">${r.s}/${r.d}</span>
-                        ${isLowest ? '<span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-black uppercase">Lowest</span>' : ''}
+                        <div class="flex flex-col">
+                            <span class="font-black text-sm text-slate-700">${r.s} / ${r.d}</span>
+                            <span class="text-[9px] font-bold uppercase tracking-tight" style="color: ${r.color}">${r.label}</span>
+                        </div>
+                        ${isLowest ? '<span class="text-[8px] bg-blue-600 text-white px-1.5 py-0.5 rounded-md font-black uppercase ml-1">Lowest</span>' : ''}
                     </div>
-                    <span class="text-[10px] text-slate-400">${r.time}</span>`;
+                    <span class="text-[10px] text-slate-400 font-medium">${r.time}</span>`;
                 log.appendChild(div);
             });
         }
@@ -178,12 +226,22 @@
         function showDashboard() {
             navigate('dashboard-view');
             const list = document.getElementById('dashboard-list');
-            list.innerHTML = historyData.length ? '' : '<p class="text-center py-10 text-slate-400">No history found.</p>';
-            historyData.forEach((e, idx) => {
+            list.innerHTML = historyData.length ? '' : '<div class="text-center py-20 text-slate-400 font-medium">No history found. Click "New" to start.</div>';
+            
+            historyData.forEach((e) => {
                 const div = document.createElement('div');
-                div.className = 'bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center cursor-pointer';
+                div.className = 'bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center cursor-pointer hover:border-blue-200 transition';
                 div.onclick = () => showSummary(e);
-                div.innerHTML = `<div><p class="text-[9px] font-bold text-slate-400 uppercase">${e.timestamp}</p><p class="text-xl font-black" style="color:${e.avg.color}">${e.avg.s}/${e.avg.d}</p></div><div class="text-right text-[10px] font-bold text-slate-400">${e.readings.length} readings</div>`;
+                div.innerHTML = `
+                    <div class="flex flex-col">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">${e.timestamp}</p>
+                        <p class="text-2xl font-black" style="color:${e.avg.color}">${e.avg.s} / ${e.avg.d}</p>
+                        <span class="text-[10px] font-bold uppercase" style="color:${e.avg.color}">${e.avg.label}</span>
+                    </div>
+                    <div class="text-right text-[10px] font-black text-slate-300 uppercase">
+                        ${e.readings.length} Readings
+                    </div>
+                `;
                 list.appendChild(div);
             });
         }
